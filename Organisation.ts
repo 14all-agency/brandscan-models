@@ -1,5 +1,6 @@
 import { ObjectId } from 'bson';
 import { z } from "zod";
+import { RedditSearchEntityResult, RedditSearchModel, RedditSearchModelSchema } from "./RedditSearch";
 
 export const ShopifyConnectionResult = z.object({
   apiKey: z.string(),
@@ -43,6 +44,10 @@ export const OrganisationResult = z.object({
   shopCreatedAt: z.string().optional().nullable().describe("shop created at"),
   // Custom
   settings: SettingsResult,
+  redditSearchHistory: z.array(z.union([
+    z.instanceof(ObjectId),
+    RedditSearchEntityResult,
+  ])).optional().nullable().describe("Recent Reddit search history (most recent first). Stores search ids by default, but may contain populated RedditSearch entities after lookup/join. Should be capped (e.g. 100 items) at application level"),
   // Billing stuff
   billingPlanStatus: z.union([
     z.literal("INACTIVE"),
@@ -77,6 +82,10 @@ export const OrganisationModelSchema = z.object({
   shopifySite: z.string().nullable().optional(),
   // custom
   settings: OrganisationResult.shape.settings,
+  redditSearchHistory: z.array(z.union([
+    z.string(),
+    RedditSearchModelSchema,
+  ])).optional().nullable().describe("Recent Reddit search history (most recent first). Returns search ids by default, but may contain populated RedditSearch models after lookup/join. Should be capped (e.g. 100 items) at application level"),
   // billing
   billingPlanStatus: OrganisationResult.shape.billingPlanStatus,
   billingSubscriptionId: OrganisationResult.shape.billingSubscriptionId,
@@ -89,37 +98,46 @@ export type OrganisationModel = z.infer<typeof OrganisationModelSchema>;
 export const OrganisationModel = {
   convertFromEntity(entity: OrganisationResultEntity, includeCredentials = false): OrganisationModel {
     if(includeCredentials) {
-      console.log("includeCredentials IS TRUE")
+      console.log("includeCredentials IS TRUE");
     }
 
     const obj: OrganisationModel = {
       id: entity._id.toHexString(),
-      country: entity.country || null,
-      passwordProtected: entity.passwordProtected || null,
-      contactEmail: entity.contactEmail || null,
-      locale: entity.locale || null,
-      reviewed: entity.reviewed || null,
-      reviewSurface: entity.reviewSurface || null,
-      rating: entity.rating || null,
-      plan: entity.plan || null,
-      website: entity.website || null,
-      name: entity.name || null,
-      timezone: entity.timezone || null,
-      shopCreatedAt: entity.shopCreatedAt || null,
-      currency: entity.currency || null,
-      createdAt: new Date(entity.createdAt || new Date()),
-      settingsLastSynced: entity.settingsLastSynced ? new Date(entity.settingsLastSynced || new Date()) : null,
-      shopifyConnection: includeCredentials ? (entity.shopifyConnection || null) : null,
-      shopifyConnectionStatus: entity.shopifyConnectionStatus || "INACTIVE",
-      shopifySite: entity?.shopifyConnection?.domain || null,
+      country: entity.country ?? null,
+      passwordProtected: entity.passwordProtected ?? null,
+      contactEmail: entity.contactEmail ?? null,
+      locale: entity.locale ?? null,
+      reviewed: entity.reviewed ?? null,
+      reviewSurface: entity.reviewSurface ?? null,
+      rating: entity.rating ?? null,
+      plan: entity.plan ?? null,
+      website: entity.website ?? null,
+      name: entity.name ?? null,
+      timezone: entity.timezone ?? null,
+      shopCreatedAt: entity.shopCreatedAt ?? null,
+      currency: entity.currency ?? null,
+      createdAt: entity.createdAt ? new Date(entity.createdAt) : null,
+      settingsLastSynced: entity.settingsLastSynced ? new Date(entity.settingsLastSynced) : null,
+      shopifyConnection: includeCredentials ? (entity.shopifyConnection ?? null) : null,
+      shopifyConnectionStatus: entity.shopifyConnectionStatus ?? "INACTIVE",
+      shopifySite: entity?.shopifyConnection?.domain ?? null,
       // custom
-      settings: entity.settings || null,
+      settings: entity.settings ?? null,
+
+      redditSearchHistory: entity.redditSearchHistory
+        ? entity.redditSearchHistory.map((item) =>
+            item instanceof ObjectId
+              ? item.toHexString()
+              : RedditSearchModel.convertFromEntity(item)
+          )
+        : null,
       // billing
-      billingPlanStatus: entity.billingPlanStatus || "INACTIVE",
-      billingSubscriptionId: entity.billingSubscriptionId || null,
-      billingPlanHandle: entity.billingPlanHandle || null,
-      billingUpdatedAt: entity.billingUpdatedAt ? new Date(entity.billingUpdatedAt || new Date()) : null,
+      billingPlanStatus: entity.billingPlanStatus ?? "INACTIVE",
+      billingSubscriptionId: entity.billingSubscriptionId ?? null,
+      billingPlanHandle: entity.billingPlanHandle ?? null,
+      billingUpdatedAt: entity.billingUpdatedAt ? new Date(entity.billingUpdatedAt) : null,
     };
+
     return OrganisationModelSchema.parse(obj);
   },
 };
