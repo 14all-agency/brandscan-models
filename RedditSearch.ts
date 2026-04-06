@@ -56,14 +56,15 @@ export const SubscriptionFrequencyResult = z.union([
 export type SubscriptionFrequency = z.infer<typeof SubscriptionFrequencyResult>;
 
 export const SubscriberSchema = z.object({
-  org: z.string().optional().nullable().describe("The organisation id subscribed to this search"),
+  org: z.instanceof(ObjectId).optional().nullable().describe("The organisation id subscribed to this search"),
   subscribedAt: z.date().optional().nullable(),
   frequency: SubscriptionFrequencyResult.describe("How often notifications should be sent"),
   lastNotificationSentAt: z.date().optional().nullable(),
+  disabled: z.boolean().optional().nullable().describe("Whether this subscription is disabled"),
 });
 
 export const SubscriberResult = SubscriberSchema.optional().nullable();
-
+export type SubscriberEntity = z.infer<typeof SubscriberSchema>;
 export type Subscriber = z.infer<typeof SubscriberResult>;
 
 export const SyncStatusResult = z.union([
@@ -87,7 +88,7 @@ export const EntrySchema = z.object({
 });
 
 export const EntryResult = EntrySchema.optional().nullable();
-
+export type EntryEntity = z.infer<typeof EntrySchema>;
 export type Entry = z.infer<typeof EntryResult>;
 
 export const RedditSearchEntityResult = z.object({
@@ -115,10 +116,11 @@ export const RedditSearchEntityResult = z.object({
 export type RedditSearchEntity = z.infer<typeof RedditSearchEntityResult>;
 
 export const RedditSearchModelSubscriberSchema = z.object({
-  org: SubscriberSchema.shape.org,
+  org: z.string().optional().nullable().describe("The organisation id subscribed to this search"),
   subscribedAt: SubscriberSchema.shape.subscribedAt,
   frequency: SubscriberSchema.shape.frequency,
   lastNotificationSentAt: SubscriberSchema.shape.lastNotificationSentAt,
+  disabled: SubscriberSchema.shape.disabled,
 });
 
 export type RedditSearchModelSubscriber = z.infer<typeof RedditSearchModelSubscriberSchema>;
@@ -171,10 +173,11 @@ export const RedditSearchModel = {
     }
 
     const obj: RedditSearchModelSubscriber = {
-      org: subscriber.org ?? null,
+      org: subscriber.org ? subscriber.org.toHexString() : null,
       subscribedAt: subscriber.subscribedAt ? new Date(subscriber.subscribedAt) : null,
       frequency: subscriber.frequency ?? null,
       lastNotificationSentAt: subscriber.lastNotificationSentAt ? new Date(subscriber.lastNotificationSentAt) : null,
+      disabled: subscriber.disabled ?? null,
     };
 
     return RedditSearchModelSubscriberSchema.parse(obj);
@@ -208,16 +211,16 @@ export const RedditSearchModel = {
     }
   ): RedditSearchModel {
     const allSubscribers = (entity.subscribers || [])
-      .map((subscriber) => RedditSearchModel.convertSubscriberFromEntity(subscriber))
-      .filter((subscriber): subscriber is RedditSearchModelSubscriber => !!subscriber);
+      .map((subscriber: SubscriberEntity) => RedditSearchModel.convertSubscriberFromEntity(subscriber))
+      .filter((subscriber: RedditSearchModelSubscriber | null): subscriber is RedditSearchModelSubscriber => !!subscriber);
 
     const mySubscription = options?.org
-      ? allSubscribers.find((subscriber) => subscriber.org === options.org) || null
+      ? allSubscribers.find((subscriber: RedditSearchModelSubscriber) => subscriber.org === options.org) || null
       : null;
 
     const results = (entity.results || [])
-      .map((entry) => RedditSearchModel.convertEntryFromEntity(entry))
-      .filter((entry): entry is RedditSearchModelEntry => !!entry);
+      .map((entry: EntryEntity) => RedditSearchModel.convertEntryFromEntity(entry))
+      .filter((entry: RedditSearchModelEntry | null): entry is RedditSearchModelEntry => !!entry);
 
     const obj: RedditSearchModel = {
       id: entity._id.toHexString(),
