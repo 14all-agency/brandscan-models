@@ -206,6 +206,7 @@ export const RedditSearchModel = {
   convertFromEntity(
     entity: RedditSearchEntity,
     options?: {
+      omitResults?: boolean;
       includeAllSubscribers?: boolean;
       org?: string | null;
     }
@@ -228,7 +229,7 @@ export const RedditSearchModel = {
       searchUrl: entity.searchUrl ?? null,
       alternateUrl: entity.alternateUrl ?? null,
       filters: entity.filters ?? null,
-      results: results,
+      results: options?.omitResults ? null : results,
 
       subscribers: options?.includeAllSubscribers ? allSubscribers : null,
       mySubscription: mySubscription ?? null,
