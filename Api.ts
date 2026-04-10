@@ -7,7 +7,7 @@
  */
 
 import { z } from "zod";
-import { FiltersSchema } from "@/models/RedditSearch";
+import { FiltersSchema } from "./RedditSearch";
 
 //
 // ======================================================

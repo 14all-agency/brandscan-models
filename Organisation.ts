@@ -126,9 +126,8 @@ export const OrganisationModel = {
 
       redditSearchHistory: entity.redditSearchHistory
         ? entity.redditSearchHistory.map((item) =>
-            item instanceof ObjectId
-              ? item.toHexString()
-              : RedditSearchModel.convertFromEntity(item)
+            // @ts-ignore
+            ObjectId.isValid(item) ? item.toHexString() : RedditSearchModel.convertFromEntity(item)
           )
         : null,
       // billing
