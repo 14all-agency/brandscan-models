@@ -92,6 +92,7 @@ Example:
     {
       "authorName": "example_user",
       "authorUrl": "https://www.reddit.com/user/example_user/",
+      "entryUrl": "https://www.reddit.com/comments/example_comment",
       "subreddit": "newzealand",
       "entryId": "t3_abcdef",
       "updatedAt": "2026-04-11T00:00:00.000Z",
