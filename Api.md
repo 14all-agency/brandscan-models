@@ -19,7 +19,7 @@ All fields are optional.
   "customInstructions": "Keep it concise and sound like an actual Reddit user.",
   "promotionLink": "https://example.com/products/widget",
   "referenceId": "t3_abcdef",
-  "promotionTone": "subtle"
+  "promotionTone": "extra_subtle"
 }
 ```
 
@@ -28,6 +28,10 @@ All fields are optional.
 * if `promotionLink` is omitted, endpoint falls back to org website, then Shopify domain if available
 * if `referenceId` matches cached Reddit search result, model uses post title/content as reply context
 * if `id` is provided, draft must belong to authenticated org
+* `promotionTone` can be `subtle`, `direct`, or `extra_subtle`
+* `extra_subtle` hyperlinks a topic-related word or short phrase instead of using a callout
+* generation is throttled to `20` drafts per org per rolling hour
+* once an org has generated `50` drafts or more, `FREE` and `LIFETIME-FREE` plans use `gpt-5-nano`
 * generated output is concise Reddit-flavoured markdown
 
 ### Success response

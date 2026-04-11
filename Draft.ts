@@ -5,7 +5,7 @@ import { ObjectId } from "bson";
 import { z } from "zod";
 
 export const PromotionToneResult = z
-  .union([z.literal("subtle"), z.literal("direct")])
+  .union([z.literal("subtle"), z.literal("direct"), z.literal("extra_subtle")])
   .optional()
   .nullable();
 
