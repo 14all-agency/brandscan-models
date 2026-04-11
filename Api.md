@@ -1,3 +1,183 @@
+## Auth
+
+**Method:** `GET`  
+**Route:** `shopify/auth`
+
+Checks whether shop already has active Shopify connection with required scopes. If yes, returns org payload. Otherwise creates install `state` and returns Shopify OAuth URL.
+
+### Query parameters
+
+* `shop: string` (required, must end with `myshopify.com`)
+* standard Shopify HMAC params for verification
+
+### Success response when already connected
+
+```json
+{
+  "org": {
+    "id": "665f0d3f4f9a9b0099999999",
+    "name": "Example Store",
+    "shopifyConnectionStatus": "ACTIVE"
+  }
+}
+```
+
+### Success response when install required
+
+```json
+{
+  "url": "https://example.myshopify.com/admin/oauth/authorize?client_id=..."
+}
+```
+
+\---
+
+## Install
+
+**Method:** `GET`  
+**Route:** `shopify/install`
+
+Completes Shopify OAuth install flow. Verifies `shop` + `state`, exchanges `code` for access token, stores Shopify connection on org, registers uninstall/billing webhooks, backfills basic shop settings for first-time installs, then redirects to app.
+
+### Query parameters
+
+* `shop: string` (required)
+* `code: string` (required)
+* `state: string` (required)
+* standard Shopify HMAC params for verification
+
+### Success response
+
+HTTP `302` redirect to `APP_URL`.
+
+\---
+
+## Check Billing
+
+**Method:** `GET`  
+**Route:** `shopify/checkBilling`
+
+Checks current active Shopify app subscription, maps it to internal plan, updates org billing fields, and returns updated org when active billing found.
+
+### Query parameters
+
+* `shop: string` (required)
+* standard Shopify HMAC params for verification
+* `charge_id: string` (optional, used in current lookup flow)
+
+### Success response when active subscription found
+
+```json
+{
+  "org": {
+    "id": "665f0d3f4f9a9b0099999999",
+    "billingPlanStatus": "ACTIVE",
+    "billingPlanHandle": "PRO"
+  }
+}
+```
+
+### Alternate success response
+
+```json
+{}
+```
+
+\---
+
+## Ping Review
+
+**Method:** `POST`  
+**Route:** `shopify/pingReview`
+
+Stores lightweight review feedback signals on org record.
+
+### Query parameters
+
+* `shop: string` (required)
+* standard Shopify HMAC params for verification
+
+### Request body
+
+```json
+{
+  "rating": 5,
+  "reviewSurface": "shopify_app_store"
+}
+```
+
+### Success response
+
+```json
+{}
+```
+
+\---
+
+## Ping Web Vitals
+
+**Method:** `POST`  
+**Route:** `shopify/pingWebVitals`
+
+Stores reported frontend vitals payload for shop.
+
+### Query parameters
+
+* `shop: string` (required)
+* standard Shopify HMAC params for verification
+
+### Request body
+
+```json
+{
+  "path": "/products/widget",
+  "vitals": {
+    "lcp": 1900,
+    "cls": 0.02
+  }
+}
+```
+
+### Success response
+
+```json
+{}
+```
+
+\---
+
+## Ping Alert
+
+**Method:** `POST`  
+**Route:** `shopify/pingAlert`
+
+Stores alert payload and, outside `dev`, emails admin unless `silent` is truthy.
+
+### Query parameters
+
+* `shop: string` (required)
+* standard Shopify HMAC params for verification
+
+### Request body
+
+Arbitrary JSON payload. Common pattern:
+
+```json
+{
+  "type": "client_error",
+  "message": "Example issue",
+  "silent": false
+}
+```
+
+### Success response
+
+```json
+{}
+```
+
+\---
+
 ## Generate Draft
 
 **Method:** `POST`  
@@ -513,6 +693,66 @@ Updates organisation-level settings for the authenticated org. Currently only `c
 {
   "contactEmail": "alerts@example.com"
 }
+```
+
+\---
+
+## Billing Webhook
+
+**Method:** `POST`  
+**Route:** `billing`
+
+Processes Shopify `APP_SUBSCRIPTIONS_UPDATE` webhook. Verifies webhook HMAC, refreshes active subscription from Shopify, updates org billing fields, and reverts non-legacy orgs to `FREE` when no active paid subscription remains.
+
+### Headers
+
+* `X-Shopify-Shop-Domain: string` (required)
+* Shopify webhook HMAC headers
+
+### Success response
+
+```json
+{}
+```
+
+\---
+
+## Uninstall Webhook
+
+**Method:** `POST`  
+**Route:** `uninstall`
+
+Processes Shopify `APP_UNINSTALLED` webhook. Verifies webhook HMAC, removes Shopify connection fields from org, sets `uninstalledAt`, and deletes related `pricelists` and `subtotalDiscounts` for that org.
+
+### Headers
+
+* `X-Shopify-Shop-Domain: string` (required)
+* Shopify webhook HMAC headers
+
+### Success response
+
+```json
+{}
+```
+
+\---
+
+## GDPR Webhook
+
+**Method:** `POST`  
+**Route:** `gdpr`
+
+Processes Shopify GDPR webhooks. Verifies webhook HMAC and emails admin for non-`shop/redact` topics.
+
+### Headers
+
+* `X-Shopify-Topic: string` (required)
+* Shopify webhook HMAC headers
+
+### Success response
+
+```json
+{}
 ```
 
 ### Success response
