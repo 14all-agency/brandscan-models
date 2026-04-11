@@ -242,6 +242,59 @@ When set, only subscription-backed searches are returned.
 
 \---
 
+## Get Related Searches
+
+**Method:** `POST`  
+**Route:** `redditSearch/getRelatedSearches`
+
+Returns top related searches from other orgs that have at least one of the provided search ids in their search history. The authenticated org is excluded from the counts.
+
+### Query parameters
+
+* `shop: string` (required)
+
+### Request body
+
+```json
+{
+  "searchIds": [
+    "665f0d3f4f9a9b0012345678",
+    "665f0d3f4f9a9b0012345679"
+  ]
+}
+```
+
+### Rules
+
+* invalid ids are ignored
+* if all ids are invalid, returns an empty array
+* each matching org contributes at most `1` count per search
+* searches with a count of `1` are excluded
+* the requesting org does not contribute to counts
+* at most `10` results are returned
+* disabled or missing search records are omitted from the response
+
+### Success response
+
+```json
+{
+  "searches": [
+    {
+      "id": "665f0d3f4f9a9b0012345680",
+      "query": "game kings",
+      "count": 3
+    },
+    {
+      "id": "665f0d3f4f9a9b0012345681",
+      "query": "board game cafe",
+      "count": 2
+    }
+  ]
+}
+```
+
+\---
+
 ## Update Org
 
 **Method:** `POST`  

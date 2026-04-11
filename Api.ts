@@ -157,3 +157,45 @@ export function parseCreateSearchBody(body: string | null | undefined): CreateSe
 
   return parsed.data;
 }
+
+//
+// ======================================================
+// GET RELATED SEARCHES (POST /redditSearch/getRelatedSearches)
+// ======================================================
+//
+
+/**
+ * Request body for finding related Reddit searches from other orgs' history.
+ */
+export const GetRelatedSearchesBodySchema = z.object({
+  searchIds: z.array(z.string()),
+});
+
+export type GetRelatedSearchesBody = z.infer<typeof GetRelatedSearchesBodySchema>;
+
+/**
+ * Parses and validates raw request body for getRelatedSearches endpoint.
+ */
+export function parseGetRelatedSearchesBody(
+  body: string | null | undefined,
+): GetRelatedSearchesBody {
+  if (!body) {
+    throw new Error("Request body is not valid");
+  }
+
+  let parsedJson: unknown;
+
+  try {
+    parsedJson = JSON.parse(body);
+  } catch {
+    throw new Error("Request body is not valid");
+  }
+
+  const parsed = GetRelatedSearchesBodySchema.safeParse(parsedJson);
+
+  if (!parsed.success) {
+    throw new Error("Request body is not valid");
+  }
+
+  return parsed.data;
+}
