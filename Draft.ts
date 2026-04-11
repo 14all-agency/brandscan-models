@@ -4,6 +4,8 @@
 import { ObjectId } from "bson";
 import { z } from "zod";
 
+import { RedditSearchModelEntrySchema } from "./RedditSearch";
+
 export const PromotionToneResult = z
   .union([z.literal("subtle"), z.literal("direct"), z.literal("extra_subtle")])
   .optional()
@@ -39,6 +41,12 @@ export const DraftModelSchema = z.object({
 
 export type DraftModel = z.infer<typeof DraftModelSchema>;
 
+export const DraftWithReferenceModelSchema = DraftModelSchema.extend({
+  referenceEntity: RedditSearchModelEntrySchema.optional().nullable(),
+});
+
+export type DraftWithReferenceModel = z.infer<typeof DraftWithReferenceModelSchema>;
+
 export const DraftModel = {
   convertFromEntity(entity: DraftEntity): DraftModel {
     const obj: DraftModel = {
@@ -54,5 +62,15 @@ export const DraftModel = {
     };
 
     return DraftModelSchema.parse(obj);
+  },
+
+  convertWithReferenceFromEntity(
+    entity: DraftEntity,
+    referenceEntity: DraftWithReferenceModel["referenceEntity"],
+  ): DraftWithReferenceModel {
+    return DraftWithReferenceModelSchema.parse({
+      ...DraftModel.convertFromEntity(entity),
+      referenceEntity: referenceEntity ?? null,
+    });
   },
 };

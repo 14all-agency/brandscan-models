@@ -267,7 +267,7 @@ Updates existing draft owned by authenticated org using provided values. Unlike 
 
 ### Success response
 
-Returns full `DraftModel`.
+Returns full `DraftModel` plus optional `referenceEntity` when `referenceId` resolves to a cached Reddit result.
 
 ```json
 {
@@ -278,6 +278,18 @@ Returns full `DraftModel`.
   "customInstructions": "Keep it short.",
   "promotionLink": "https://example.com",
   "referenceId": "t3_abcdef",
+  "referenceEntity": {
+    "authorName": "example_user",
+    "authorUrl": "https://www.reddit.com/user/example_user/",
+    "subreddit": "newzealand",
+    "entryId": "t3_abcdef",
+    "entryUrl": "https://www.reddit.com/comments/example_comment",
+    "updatedAt": "2026-04-11T00:00:00.000Z",
+    "publishedAt": "2026-04-11T00:00:00.000Z",
+    "title": "Game Kings mentioned here",
+    "content": "<p>Example HTML content</p>",
+    "fetchedAt": "2026-04-11T00:15:00.000Z"
+  },
   "createdAt": "2026-04-11T00:00:00.000Z",
   "updatedAt": "2026-04-11T01:00:00.000Z"
 }
