@@ -167,7 +167,7 @@ export function parseCreateSearchBody(body: string | null | undefined): CreateSe
 
 export const GenerateDraftBodySchema = z.object({
   id: z.string().optional(),
-  customInstructions: z.string().optional(),
+  customInstructions: z.string().max(10_000).optional(),
   promotionLink: z.string().optional(),
   referenceId: z.string().optional(),
   promotionTone: PromotionToneResult,
