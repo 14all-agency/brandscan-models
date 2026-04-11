@@ -8,6 +8,7 @@
 
 import { z } from "zod";
 import { FiltersSchema } from "./RedditSearch";
+import { PromotionToneResult } from "./Draft";
 
 //
 // ======================================================
@@ -153,6 +154,83 @@ export function parseCreateSearchBody(body: string | null | undefined): CreateSe
         .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
         .join(", ")}`,
     );
+  }
+
+  return parsed.data;
+}
+
+//
+// ======================================================
+// GENERATE DRAFT (POST /drafts/generateDraft)
+// ======================================================
+//
+
+export const GenerateDraftBodySchema = z.object({
+  id: z.string().optional(),
+  customInstructions: z.string().optional(),
+  promotionLink: z.string().optional(),
+  referenceId: z.string().optional(),
+  promotionTone: PromotionToneResult,
+});
+
+export type GenerateDraftBody = z.infer<typeof GenerateDraftBodySchema>;
+
+export function parseGenerateDraftBody(body: string | null | undefined): GenerateDraftBody {
+  if (!body) {
+    return {};
+  }
+
+  let parsedJson: unknown;
+
+  try {
+    parsedJson = JSON.parse(body);
+  } catch {
+    throw new Error("Request body is not valid");
+  }
+
+  const parsed = GenerateDraftBodySchema.safeParse(parsedJson);
+
+  if (!parsed.success) {
+    throw new Error("Request body is not valid");
+  }
+
+  return parsed.data;
+}
+
+//
+// ======================================================
+// UPDATE DRAFT (POST /drafts/updateDraft)
+// ======================================================
+//
+
+export const UpdateDraftBodySchema = z.object({
+  id: z.string().min(1),
+  content: z.string().optional(),
+  customInstructions: z.string().optional(),
+  promotionLink: z.string().optional(),
+  referenceId: z.string().optional(),
+  promotionTone: PromotionToneResult,
+});
+
+export type UpdateDraftBody = z.infer<typeof UpdateDraftBodySchema>;
+
+export function parseUpdateDraftBody(body: string | null | undefined): UpdateDraftBody {
+  if (!body) {
+    throw new Error("Request body is not valid");
+  }
+
+  let parsedJson: unknown;
+
+  try {
+    parsedJson = JSON.parse(body);
+  } catch {
+    throw new Error("Request body is not valid");
+  }
+
+  const parsed = UpdateDraftBodySchema.safeParse(parsedJson);
+
+  if (!parsed.success) {
+    throw new Error("Request body is not valid");
   }
 
   return parsed.data;

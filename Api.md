@@ -1,3 +1,200 @@
+## Generate Draft
+
+**Method:** `POST`  
+**Route:** `drafts/generateDraft`
+
+Generates Reddit-style draft comment for authenticated org, stores it in `drafts`, and returns full `DraftModel`. If `id` is provided, endpoint updates existing draft owned by org instead of creating new one.
+
+### Query parameters
+
+* `shop: string` (required)
+
+### Request body
+
+All fields are optional.
+
+```json
+{
+  "id": "665f0d3f4f9a9b0012345678",
+  "customInstructions": "Keep it concise and sound like an actual Reddit user.",
+  "promotionLink": "https://example.com/products/widget",
+  "referenceId": "t3_abcdef",
+  "promotionTone": "subtle"
+}
+```
+
+### Rules
+
+* if `promotionLink` is omitted, endpoint falls back to org website, then Shopify domain if available
+* if `referenceId` matches cached Reddit search result, model uses post title/content as reply context
+* if `id` is provided, draft must belong to authenticated org
+* generated output is concise Reddit-flavoured markdown
+
+### Success response
+
+```json
+{
+  "id": "665f0d3f4f9a9b0012345678",
+  "org": "665f0d3f4f9a9b0099999999",
+  "promotionTone": "subtle",
+  "content": "If you're comparing options, I had decent luck using [this](https://example.com/products/widget) because it solved X without much setup.",
+  "customInstructions": "Keep it concise and sound like an actual Reddit user.",
+  "promotionLink": "https://example.com/products/widget",
+  "referenceId": "t3_abcdef",
+  "createdAt": "2026-04-11T00:00:00.000Z",
+  "updatedAt": "2026-04-11T00:00:00.000Z"
+}
+```
+
+\---
+
+## Update Draft
+
+**Method:** `POST`  
+**Route:** `drafts/updateDraft`
+
+Updates existing draft owned by authenticated org using provided values. Unlike `generateDraft`, this endpoint does not call OpenAI and instead persists caller-provided `content` directly.
+
+### Query parameters
+
+* `shop: string` (required)
+
+### Request body
+
+`id` is required. All other fields are optional.
+
+```json
+{
+  "id": "665f0d3f4f9a9b0012345678",
+  "content": "I ran into something similar. We had decent results with [this](https://example.com) because setup was quick.",
+  "customInstructions": "Keep it short.",
+  "promotionLink": "https://example.com",
+  "referenceId": "t3_abcdef",
+  "promotionTone": "subtle"
+}
+```
+
+### Rules
+
+* `id` must be valid ObjectId string
+* draft must belong to authenticated org
+* omitted optional fields keep existing stored values
+* `updatedAt` is refreshed on every successful update
+
+### Success response
+
+Returns full `DraftModel`.
+
+```json
+{
+  "id": "665f0d3f4f9a9b0012345678",
+  "org": "665f0d3f4f9a9b0099999999",
+  "promotionTone": "subtle",
+  "content": "I ran into something similar. We had decent results with [this](https://example.com) because setup was quick.",
+  "customInstructions": "Keep it short.",
+  "promotionLink": "https://example.com",
+  "referenceId": "t3_abcdef",
+  "createdAt": "2026-04-11T00:00:00.000Z",
+  "updatedAt": "2026-04-11T01:00:00.000Z"
+}
+```
+
+\---
+
+## Get Draft
+
+**Method:** `GET`  
+**Route:** `drafts/getDraft/{id}`
+
+Returns one draft owned by authenticated org.
+
+### Query parameters
+
+* `shop: string` (required)
+
+### Path parameters
+
+* `id: string` (required, must be valid ObjectId string)
+
+### Success response
+
+Returns full `DraftModel`.
+
+```json
+{
+  "id": "665f0d3f4f9a9b0012345678",
+  "org": "665f0d3f4f9a9b0099999999",
+  "promotionTone": "subtle",
+  "content": "I ran into something similar. We had decent results with [this](https://example.com) because setup was quick.",
+  "customInstructions": "Keep it short.",
+  "promotionLink": "https://example.com",
+  "referenceId": "t3_abcdef",
+  "createdAt": "2026-04-11T00:00:00.000Z",
+  "updatedAt": "2026-04-11T01:00:00.000Z"
+}
+```
+
+\---
+
+## Get Drafts
+
+**Method:** `GET`  
+**Route:** `drafts/getDrafts`
+
+Returns all drafts owned by authenticated org, sorted by most recently updated first.
+
+### Query parameters
+
+* `shop: string` (required)
+
+### Success response
+
+```json
+{
+  "drafts": [
+    {
+      "id": "665f0d3f4f9a9b0012345678",
+      "org": "665f0d3f4f9a9b0099999999",
+      "promotionTone": "subtle",
+      "content": "I ran into something similar. We had decent results with [this](https://example.com) because setup was quick.",
+      "customInstructions": "Keep it short.",
+      "promotionLink": "https://example.com",
+      "referenceId": "t3_abcdef",
+      "createdAt": "2026-04-11T00:00:00.000Z",
+      "updatedAt": "2026-04-11T01:00:00.000Z"
+    }
+  ]
+}
+```
+
+\---
+
+## Delete Draft
+
+**Method:** `POST`  
+**Route:** `drafts/deleteDraft/{id}`
+
+Deletes one draft owned by authenticated org.
+
+### Query parameters
+
+* `shop: string` (required)
+
+### Path parameters
+
+* `id: string` (required, must be valid ObjectId string)
+
+### Success response
+
+```json
+{
+  "deleted": true,
+  "id": "665f0d3f4f9a9b0012345678"
+}
+```
+
+\---
+
 ## Create Search
 
 **Method:** `POST`  
