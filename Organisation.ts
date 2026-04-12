@@ -1,11 +1,31 @@
-import { ObjectId } from 'bson';
+import { ObjectId } from "bson";
 import { z } from "zod";
 import { RedditSearchEntityResult, RedditSearchModel, RedditSearchModelSchema } from "./RedditSearch";
 
 export const ShopifyConnectionResult = z.object({
   apiKey: z.string(),
   domain: z.string(),
-  scopes: z.string().nullable().optional().describe("The scopes approved (comma seperated string)")
+  scopes: z.string().nullable().optional().describe("The scopes approved (comma seperated string)"),
+  tokenMode: z
+    .union([z.literal("NON_EXPIRING_OFFLINE"), z.literal("EXPIRING_OFFLINE")])
+    .optional()
+    .nullable()
+    .describe("Whether stored offline Shopify token is legacy non-expiring or expiring"),
+  accessTokenExpiresAt: z
+    .date()
+    .optional()
+    .nullable()
+    .describe("When expiring offline access token expires"),
+  refreshToken: z
+    .string()
+    .optional()
+    .nullable()
+    .describe("Refresh token used to rotate expiring offline access tokens"),
+  refreshTokenExpiresAt: z
+    .date()
+    .optional()
+    .nullable()
+    .describe("When expiring offline refresh token expires")
 }).optional().nullable();
 
 export type ShopifyConnection = z.infer<typeof ShopifyConnectionResult>;

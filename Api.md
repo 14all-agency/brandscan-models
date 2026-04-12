@@ -3,7 +3,7 @@
 **Method:** `GET`  
 **Route:** `shopify/auth`
 
-Checks whether shop already has active Shopify connection with required scopes. If yes, returns org payload. Otherwise creates install `state` and returns Shopify OAuth URL.
+Checks whether shop already has active Shopify connection with required scopes. If yes, returns org payload. Otherwise creates install `state` and returns Shopify OAuth URL for an offline install flow that now exchanges into expiring offline tokens.
 
 ### Query parameters
 
@@ -37,7 +37,7 @@ Checks whether shop already has active Shopify connection with required scopes. 
 **Method:** `GET`  
 **Route:** `shopify/install`
 
-Completes Shopify OAuth install flow. Verifies `shop` + `state`, exchanges `code` for access token, stores Shopify connection on org, registers uninstall/billing webhooks, backfills basic shop settings for first-time installs, then redirects to app.
+Completes Shopify OAuth install flow. Verifies `shop` + `state`, exchanges `code` for an expiring offline access token plus refresh token, stores Shopify connection and token expiry metadata on org, registers uninstall/billing webhooks, backfills basic shop settings for first-time installs, then redirects to app.
 
 ### Query parameters
 
