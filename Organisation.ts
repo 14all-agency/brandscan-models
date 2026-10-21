@@ -25,7 +25,27 @@ export const ShopifyConnectionResult = z.object({
     .date()
     .optional()
     .nullable()
-    .describe("When expiring offline refresh token expires")
+    .describe("When expiring offline refresh token expires"),
+  tokenGeneration: z
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .nullable()
+    .describe("Monotonic generation used to coordinate Shopify token rotation"),
+  refreshLeaseId: z
+    .string()
+    .optional()
+    .nullable()
+    .describe("Short-lived owner identifier for a Shopify token refresh"),
+  refreshLeaseExpiresAt: z
+    .date()
+    .optional()
+    .nullable()
+    .describe("When the current Shopify token refresh lease expires"),
+  lastRefreshedAt: z.date().optional().nullable(),
+  reauthorizationRequiredAt: z.date().optional().nullable(),
+  reauthorizationReason: z.string().optional().nullable(),
 }).optional().nullable();
 
 export type ShopifyConnection = z.infer<typeof ShopifyConnectionResult>;
